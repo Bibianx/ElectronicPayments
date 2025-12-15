@@ -1,16 +1,20 @@
-using Aplication.DTOs.ZonaPagos;
-using Aplication.Services.Industria;
-using Aplication.Services.ZonaPagos;
-using Aplication.Services.Recaudos.ZonaPagoCaja;
-using Common;
-using FluentValidation;
-using FluentValidation.AspNetCore;
-using Infraestructure.BackgroundServices;
-using Infraestructure.Mappers;
-using Microsoft.EntityFrameworkCore;
-using Models;
-using Polly;
-using Polly.Extensions.Http;
+global using Aplication.Services.Recaudos.ZonaPagoCaja;
+global using Infraestructure.BackgroundServices;
+global using Aplication.Services.Industria;
+global using Aplication.Services.ZonaPagos;
+global using Microsoft.EntityFrameworkCore;
+global using FluentValidation.AspNetCore;
+global using Aplication.DTOs.ZonaPagos;
+global using Aplication.DTOs.Industria;
+global using Domain.Entities.Recaudos;
+global using Infraestructure.Mappers;
+global using Polly.Extensions.Http;
+global using FluentValidation;
+global using Models.Response;
+global using AutoMapper;
+global using Common;
+global using Models;
+global using Polly;
 
 public class Startup(IConfiguration configuration)
 {

@@ -1,12 +1,5 @@
-using System.Text.Json;
-using Aplication.DTOs.Industria;
-using Aplication.DTOs.ZonaPagos;
-using Aplication.Services.Industria;
-using Common;
-using Domain.Entities.Recaudos;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using Models;
+using System.Text.Json;
 
 namespace Aplication.Services.Recaudos.ZonaPagoCaja
 {

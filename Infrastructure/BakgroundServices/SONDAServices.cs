@@ -1,10 +1,5 @@
-using Aplication.DTOs.ZonaPagos;
-using Aplication.Services.ZonaPagos;
-using Common;
 using Domain.Entities.ZonaPagos;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using Models;
 
 namespace Infraestructure.BackgroundServices
 {

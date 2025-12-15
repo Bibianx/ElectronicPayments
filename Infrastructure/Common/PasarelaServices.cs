@@ -1,15 +1,9 @@
-using System.Net;
-using System.Text.Json;
-using System.Text.Json.Serialization;
-using System.Text.RegularExpressions;
-using Aplication.DTOs.Industria;
-using Aplication.DTOs.ZonaPagos;
-using Domain.Entities.ZonaPagos;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
-using Models;
-using Models.Response;
 using JsonSerializer = System.Text.Json.JsonSerializer;
+using System.Text.RegularExpressions;
+using Microsoft.Extensions.Options;
+using Domain.Entities.ZonaPagos;
+using System.Text.Json;
+using System.Net;
 
 namespace Common
 {

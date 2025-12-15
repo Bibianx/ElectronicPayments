@@ -1,7 +1,4 @@
 //Migracion de los endpopints de Villanueva tanto ICA como PredialF que estaban realizados en php👌🫓
-using Aplication.DTOs.Industria;
-using Common;
-
 namespace Aplication.Services.Industria
 {
     public interface IIndustria

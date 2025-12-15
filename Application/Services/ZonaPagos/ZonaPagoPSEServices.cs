@@ -1,12 +1,5 @@
-using Aplication.DTOs.Industria;
-using Aplication.DTOs.ZonaPagos;
-using AutoMapper;
-using Common;
-using Domain.Entities.ZonaPagos;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using Models;
-using Models.Response;
+using Domain.Entities.ZonaPagos;
 
 namespace Aplication.Services.ZonaPagos
 {
