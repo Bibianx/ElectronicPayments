@@ -42,7 +42,6 @@ namespace Infraestructure.BackgroundServices
 
                 if (pagos_pendientes.Count == 0)
                 {
-                    System.Console.WriteLine("NO HAY PAGOS PENDIENTES PARA PROCESAR");
                     _logger.LogInformation("No hay pagos pendientes para procesar");
                     return;
                 }
@@ -76,7 +75,7 @@ namespace Infraestructure.BackgroundServices
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error general durante el proceso de pagos: {Message}", ex.Message);
+                _logger.LogError(ex, "Error general durante el proceso de pagos: {message}", ex.Message);
             }
         }
 
@@ -103,7 +102,7 @@ namespace Infraestructure.BackgroundServices
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al procesar pago {PagoId}: {Message}", item.intentos_zp?.str_id_pago ?? "SIN ID", ex.Message);
+                _logger.LogError(ex, "Error al procesar pago {PagoId}: {message}", item.intentos_zp?.str_id_pago ?? "SIN ID", ex.Message);
                 item.fecha_fin = DateOnly.FromDateTime(DateTime.Now);
                 item.hora_fin = TimeOnly.FromDateTime(DateTime.Now);
                 item.descrip_estado_fin = "RECHAZADO POR EXCEPCIÓN";
@@ -146,7 +145,7 @@ namespace Infraestructure.BackgroundServices
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al verificar pago {PagoId}: {Message}", pago.intentos_zp?.str_id_pago ?? "SIN ID", ex.Message);
+                _logger.LogError(ex, "Error al verificar pago {PagoId}: {message}", pago.intentos_zp?.str_id_pago ?? "SIN ID", ex.Message);
                 return false;
             }
         }

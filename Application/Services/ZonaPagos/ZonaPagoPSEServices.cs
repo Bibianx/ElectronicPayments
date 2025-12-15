@@ -310,18 +310,18 @@ namespace Aplication.Services.ZonaPagos
 
                 if (db_estados.Count == 0)
                 {
-                    response.Success = false;
-                    response.Message = "No hay facturas pendientes por aprobar";
+                    response.success = false;
+                    response.message = "No hay facturas pendientes por aprobar";
                     return response;
                 }
-                response.Data = db_estados;
-                response.Success = true;
+                response.data = db_estados;
+                response.success = true;
             }
             catch (Exception)
             {
-                response.Success = false;
-                response.Message = "Ocurrió un error al consultar las facturas";
-                response.Error = "Error en la consulta de facturas";
+                response.success = false;
+                response.message = "Ocurrió un error al consultar las facturas";
+                response.error = "Error en la consulta de facturas";
             }
             return response;
         }
@@ -347,7 +347,7 @@ namespace Aplication.Services.ZonaPagos
 
                 if (pago_verificado.int_estado != 1 && pago_verificado.int_error != 0)
                 {
-                    _logger.LogError("Error al verificar el pago: {Message}", pago_verificado);
+                    _logger.LogError("Error al verificar el pago: {message}", pago_verificado);
                     return;
                 }
 
@@ -371,7 +371,7 @@ namespace Aplication.Services.ZonaPagos
             catch (Exception ex)
             {
                 await transaction.RollbackAsync();
-                _logger.LogError("Error al procesar la notificación de pago: {Message}", ex.Message);
+                _logger.LogError("Error al procesar la notificación de pago: {message}", ex.Message);
             }
         }
     }

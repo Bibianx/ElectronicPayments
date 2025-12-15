@@ -2,18 +2,18 @@ namespace Models.Response
 {
     public class BaseResponse
     {
-        public bool Success { get; set; }
-        public string Message { get; set; }
-        public string Tipo { get; set; } = "info";
-        public object Data { get; set; }
-        public object DataBack { get; set; }
-        public string Tabla { get; set; }
-        public string Error { get; set; }
-        public int TotalData { get; set; }
+        public bool success { get; set; }
+        public string message { get; set; }
+        public string tipo { get; set; } = "info";
+        public object data { get; set; }
+        public object dataBack { get; set; }
+        public string tabla { get; set; }
+        public string error { get; set; }
+        public int totalData { get; set; }
     }
 
     public class ServiceResponse<T> : BaseResponse
     {
-        public new T Data { get; set; }
+        public new T data { get; set; }
     }
 }

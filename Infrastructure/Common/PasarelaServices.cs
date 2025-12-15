@@ -134,7 +134,7 @@ namespace Common
             {
                 var response_dll = await GetDll(direccion_ip_comercio, directorio_dll, request);
 
-                var root = JsonSerializer.Deserialize<TResponse>(JsonSerializer.Serialize(response_dll.Data));
+                var root = JsonSerializer.Deserialize<TResponse>(JsonSerializer.Serialize(response_dll.data));
 
                 if (root != null)
                     return root;
@@ -229,33 +229,33 @@ namespace Common
                         try
                         {
                             dynamic json_response = JsonDocument.Parse(resultado_limpio);
-                            response.Success = true;
-                            response.Message = "Dll consultado correctamente";
-                            response.Data = json_response;
+                            response.success = true;
+                            response.message = "Dll consultado correctamente";
+                            response.data = json_response;
                             return response;
                         }
                         catch (Exception ex)
                         {
-                            response.Success = false;
-                            response.Message = "Error al parsear el contenido del dll";
-                            response.Error = resultado_limpio;
-                            response.Data = $"Error al parsear {ex}";
+                            response.success = false;
+                            response.message = "Error al parsear el contenido del dll";
+                            response.error = resultado_limpio;
+                            response.data = $"Error al parsear {ex}";
                             return response;
                         }
                     }
                     else
                     {
-                        response.Success = false;
-                        response.Message = $"Error al realizar la solicitud al dll {response_message}, directorio {directorio} , ip. {ip}";
-                        response.Error = $"Error al realizar la solicitud al dll -> {response_message}";
+                        response.success = false;
+                        response.message = $"Error al realizar la solicitud al dll {response_message}, directorio {directorio} , ip. {ip}";
+                        response.error = $"Error al realizar la solicitud al dll -> {response_message}";
                     }
                 }
             }
             catch (Exception ex)
             {
-                response.Success = false;
-                response.Message = $"Error en obtener informacion del dll  {ex.Message}";
-                response.Error = $"Error en obtener informacion del dll {ex}";
+                response.success = false;
+                response.message = $"Error en obtener informacion del dll  {ex.Message}";
+                response.error = $"Error en obtener informacion del dll {ex}";
             }
             return response;
         }
