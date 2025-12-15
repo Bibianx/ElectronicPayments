@@ -1,6 +1,6 @@
-using Domain.Entities.PSE.Epayco;
-using Domain.Entities.PSE.ZonaPagos;
+using Domain.Entities.Epayco;
 using Domain.Entities.Recaudos;
+using Domain.Entities.ZonaPagos;
 using Microsoft.EntityFrameworkCore;
 
 namespace Models
