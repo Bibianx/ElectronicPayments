@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
-namespace Domain.Entities.PSE.Epayco
+namespace Domain.Entities.Epayco
 {
     [Index(nameof(transactionID), IsUnique = true)]
     public class EPAYCO

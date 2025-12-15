@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
-namespace Domain.Entities.PSE.ZonaPagos
+namespace Domain.Entities.ZonaPagos
 {
     [Index(nameof(str_id_pago))]
     public class INTENTOSZP
