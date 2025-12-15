@@ -1,7 +1,16 @@
+using Aplication.DTOs.ZonaPagos;
+using Aplication.Services.Industria;
+using Aplication.Services.ZonaPagos;
+using Aplication.Services.Recaudos.ZonaPagoCaja;
+using Common;
 using FluentValidation;
 using FluentValidation.AspNetCore;
+using Infraestructure.BackgroundServices;
+using Infraestructure.Mappers;
 using Microsoft.EntityFrameworkCore;
 using Models;
+using Polly;
+using Polly.Extensions.Http;
 
 public class Startup(IConfiguration configuration)
 {
@@ -9,14 +18,30 @@ public class Startup(IConfiguration configuration)
 
     public void ConfigureServices(IServiceCollection services)
     {
-        services.AddControllers();
+
+        services.Configure<ClavesMonterrey>(Configuration.GetSection("CajaMonterrey"));
+        services.Configure<ClavesCAJAZP>(Configuration.GetSection("CajaZP"));
+        services.Configure<ClavesPSE>(Configuration.GetSection("ZonaPagos"));
+
+
+        services.AddControllers()
+            .AddJsonOptions(options =>
+            {
+                options.JsonSerializerOptions.PropertyNamingPolicy = null;
+                options.JsonSerializerOptions.DictionaryKeyPolicy = null; // opcional
+                options.JsonSerializerOptions.PropertyNameCaseInsensitive = false;
+            });
 
         services.AddEndpointsApiExplorer();
         services.AddSwaggerGen();
+        services.AddAutoMapper(typeof(Startup));
 
+
+        ConfigureGeneralesMapping(services);
         ConfigureFluentValidation(services);
         ConfigureConnectionDB(services);
         ConfigureApiVersion(services);
+        RegisterServices(services);
     }
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -39,12 +64,47 @@ public class Startup(IConfiguration configuration)
         });
     }
 
+    private static void ConfigureGeneralesMapping(IServiceCollection services)
+        {
+            /* mapping */
+            services.AddAutoMapper(typeof(AutoMapperZonaPagos));
+        }
+
     private void ConfigureConnectionDB(IServiceCollection services)
     {
         services.AddDbContext<DataContext>(options =>
         {
             options.UseNpgsql(Configuration.GetConnectionString("DefaultConnection"));
         });
+    }
+    
+    private static void RegisterServices(IServiceCollection services)
+    {
+        services.AddScoped<IPasarelaServices, PasarelaServices>();
+        services.AddScoped<IZonaPagoPSE, ZonaPagoPSEServices>();
+         services
+                .AddHttpClient(
+                    "ZonaPagos",
+                    client =>
+                    {
+                        client.BaseAddress = new Uri("https://www.zonapagos.com/");
+                        client.DefaultRequestHeaders.Add("Accept", "application/json");
+                    }
+                )
+                .AddPolicyHandler(
+                    HttpPolicyExtensions
+                        .HandleTransientHttpError()
+                        .WaitAndRetryAsync(
+                            3,
+                            retryAttempt =>
+                            {
+                                return TimeSpan.FromSeconds(retryAttempt);
+                            }
+                        )
+                );
+        services.AddScoped<IZonaPagoCaja, ZonaPagoCajaServices>();
+        services.AddScoped<IIndustria, IndustriaServices>();
+        services.AddHostedService<SONDAServices>();
     }
 
     private static void ConfigureFluentValidation(IServiceCollection services)
