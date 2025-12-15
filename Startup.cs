@@ -36,13 +36,24 @@ public class Startup(IConfiguration configuration)
         services.AddSwaggerGen();
         services.AddAutoMapper(typeof(Startup));
 
-
         ConfigureGeneralesMapping(services);
         ConfigureFluentValidation(services);
         ConfigureConnectionDB(services);
         ConfigureApiVersion(services);
         RegisterServices(services);
+        ConfigureCors(services);
     }
+
+    private static void ConfigureCors(IServiceCollection services)
+    {
+        services.AddCors(options =>
+        {
+            options.AddPolicy("AllowAllOrigins", builder =>
+                builder.AllowAnyOrigin()
+                       .AllowAnyHeader()
+                       .AllowAnyMethod());
+        });
+    } 
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
     {
@@ -58,10 +69,20 @@ public class Startup(IConfiguration configuration)
 
         app.UseAuthorization();
 
+        app.UseCors(builder =>
+        {
+            builder
+                .WithOrigins("http://localhost:8080", "http://localhost:8081")
+                .AllowAnyMethod()
+                .AllowAnyHeader()
+                .AllowCredentials();
+        });
+        
         app.UseEndpoints(endpoints =>
         {
             endpoints.MapControllers();
         });
+
     }
 
     private static void ConfigureGeneralesMapping(IServiceCollection services)
