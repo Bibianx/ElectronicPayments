@@ -4,7 +4,7 @@ namespace Validators.Dominus
 {
 public class VentasConsolidadoValidator : AbstractValidator<RequestConsultaVentasConsolidado>
 {
-    public VentasConsolidadoValidator(IConfiguration configuration)
+    public VentasConsolidadoValidator()
     {
             RuleFor(x => x.consolidated_id)
                 .NotEmpty()
