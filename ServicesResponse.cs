@@ -6,10 +6,7 @@ namespace Models.Response
         public string message { get; set; }
         public string tipo { get; set; } = "info";
         public object data { get; set; }
-        public object dataBack { get; set; }
-        public string tabla { get; set; }
-        public string error { get; set; }
-        public int totalData { get; set; }
+        public object error { get; set; }
     }
 
     public class ServiceResponse<T> : BaseResponse
