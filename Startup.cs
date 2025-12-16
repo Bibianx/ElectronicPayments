@@ -40,11 +40,11 @@ public class Startup(IConfiguration configuration)
         services.AddSwaggerGen();
         services.AddAutoMapper(typeof(Startup));
 
+        RegisterServices(services, Configuration);
         ConfigureGeneralesMapping(services);
         ConfigureFluentValidation(services);
         ConfigureConnectionDB(services);
         ConfigureApiVersion(services);
-        RegisterServices(services);
         ConfigureCors(services);
     }
 
@@ -103,33 +103,45 @@ public class Startup(IConfiguration configuration)
         });
     }
     
-    private static void RegisterServices(IServiceCollection services)
+    private static void RegisterServices(IServiceCollection services, IConfiguration Configuration)
     {
         services.AddScoped<IPasarelaServices, PasarelaServices>();
-        services.AddScoped<IZonaPagoPSE, ZonaPagoPSEServices>();
-         services
-                .AddHttpClient(
-                    "ZonaPagos",
-                    client =>
-                    {
-                        client.BaseAddress = new Uri("https://www.zonapagos.com/");
-                        client.DefaultRequestHeaders.Add("Accept", "application/json");
-                    }
-                )
-                .AddPolicyHandler(
-                    HttpPolicyExtensions
-                        .HandleTransientHttpError()
-                        .WaitAndRetryAsync(
-                            3,
-                            retryAttempt =>
-                            {
-                                return TimeSpan.FromSeconds(retryAttempt);
-                            }
-                        )
-                );
         services.AddScoped<IZonaPagoCaja, ZonaPagoCajaServices>();
+        services.AddScoped<IZonaPagoPSE, ZonaPagoPSEServices>();
         services.AddScoped<IIndustria, IndustriaServices>();
         services.AddHostedService<SONDAServices>();
+
+        //Proveedores servicios de pago externos
+        ConfigureHttpClient(services, Configuration, "ZonaPagos"); //Municipio de Villanueva
+        ConfigureHttpClient(services, Configuration, "Dominus"); //Estaciones de servicio
+        ConfigureHttpClient(services, Configuration, "Epayco"); //Comercializadora
+    }
+
+    private static void ConfigureHttpClient(IServiceCollection services, IConfiguration configuration, string client_name)
+    {
+
+        var base_url = configuration.GetValue<string>($"ExternalServices:{client_name}:BaseUrl");
+
+        services
+            .AddHttpClient(
+                client_name,
+                client =>
+                {
+                    client.BaseAddress = new Uri(base_url);
+                    client.DefaultRequestHeaders.Add("Accept", "application/json");
+                }
+            )
+            .AddPolicyHandler(
+                HttpPolicyExtensions
+                    .HandleTransientHttpError()
+                    .WaitAndRetryAsync(
+                        3,
+                        retryAttempt =>
+                        {
+                            return TimeSpan.FromSeconds(retryAttempt);
+                        }
+                    )
+            );
     }
 
     private static void ConfigureFluentValidation(IServiceCollection services)
