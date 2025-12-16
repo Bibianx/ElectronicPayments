@@ -15,6 +15,8 @@ global using AutoMapper;
 global using Common;
 global using Models;
 global using Polly;
+using Aplication.Services.Dominus;
+using Aplication.DTOs.Dominus;
 
 public class Startup(IConfiguration configuration)
 {
@@ -24,6 +26,7 @@ public class Startup(IConfiguration configuration)
     {
 
         services.Configure<ClavesMonterrey>(Configuration.GetSection("CajaMonterrey"));
+        services.Configure<ClavesDominus>(Configuration.GetSection("Dominus"));
         services.Configure<ClavesCAJAZP>(Configuration.GetSection("CajaZP"));
         services.Configure<ClavesPSE>(Configuration.GetSection("ZonaPagos"));
 
@@ -109,7 +112,8 @@ public class Startup(IConfiguration configuration)
         services.AddScoped<IZonaPagoCaja, ZonaPagoCajaServices>();
         services.AddScoped<IZonaPagoPSE, ZonaPagoPSEServices>();
         services.AddScoped<IIndustria, IndustriaServices>();
-        services.AddHostedService<SONDAServices>();
+        services.AddScoped<IDominus, DominusServices>();
+        services.AddHostedService<SONDAServices>(); 
 
         //Proveedores servicios de pago externos
         ConfigureHttpClient(services, Configuration, "ZonaPagos"); //Municipio de Villanueva
