@@ -6,10 +6,8 @@ global using Aplication.Services.Industria;
 global using Aplication.Services.ZonaPagos;
 global using Microsoft.EntityFrameworkCore;
 global using FluentValidation.AspNetCore;
-global using Aplication.DTOs.ZonaPagos;
 global using Aplication.DTOs.Industria;
 global using Domain.Entities.Recaudos;
-global using Infraestructure.Mappers;
 global using Polly.Extensions.Http;
 global using FluentValidation;
 global using Models.Response;
@@ -17,8 +15,11 @@ global using AutoMapper;
 global using Common;
 global using Models;
 global using Polly;
+
+using Infraestructure.ExternalAPI.Mappers.ZonaPagos;
+using Infraestructure.ExternalAPI.DTOs.ZonaPagos;
+using Infraestructure.ExternalAPI.DTOs.Dominus;
 using Aplication.Services.Dominus;
-using Aplication.DTOs.Dominus;
 
 public class Startup(IConfiguration configuration)
 {
