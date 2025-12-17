@@ -1,4 +1,6 @@
+global using System.ComponentModel.DataAnnotations.Schema;
 global using Aplication.Services.Recaudos.ZonaPagoCaja;
+global using System.ComponentModel.DataAnnotations;
 global using Infraestructure.BackgroundServices;
 global using Aplication.Services.Industria;
 global using Aplication.Services.ZonaPagos;
