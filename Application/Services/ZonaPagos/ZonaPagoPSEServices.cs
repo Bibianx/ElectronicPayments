@@ -1,3 +1,4 @@
+using Infraestructure.ExternalAPI.DTOs.ZonaPagos;
 using Microsoft.Extensions.Options;
 using Domain.Entities.ZonaPagos;
 
@@ -5,9 +6,9 @@ namespace Aplication.Services.ZonaPagos
 {
     public interface IZonaPagoPSE
     {
-        Task<VerificarPagoResponseDto> VerificarPago(VerificarPagoParams _);
-        Task<IniciarPagoResponseDto> IniciarPago(IniciarPagoParams _);
-        Task<ServiceResponse<List<CargarFacturas>>> CargasFacturas();
+        Task<VerificacionPagoPSEResponse> VerificarPago(VerificacionPagoPSEParams _);
+        Task<InicioPagoResponsePSEDto> IniciarPago(InicioPagoPSEParams _);
+        Task<ServiceResponse<List<FacturaParams>>> CargasFacturas();
         Task ProcesarWebHook(int id_comercio, string id_pago);
     }
 
@@ -28,10 +29,10 @@ namespace Aplication.Services.ZonaPagos
         private readonly DataContext _context = context;
         private readonly IMapper _mapper = mapper;
 
-        public async Task<IniciarPagoResponseDto> IniciarPago(IniciarPagoParams pago)
+        public async Task<InicioPagoResponsePSEDto> IniciarPago(InicioPagoPSEParams pago)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
-            var response = new IniciarPagoResponseDto();
+            var response = new InicioPagoResponsePSEDto();
 
             try
             {
@@ -68,7 +69,7 @@ namespace Aplication.Services.ZonaPagos
                 if (!httpResult.IsSuccessStatusCode)
                     return ErrorInicioPagoResponse(-1);
 
-                var data = await httpResult.Content.ReadFromJsonAsync<IniciarPagoResponseDto>();
+                var data = await httpResult.Content.ReadFromJsonAsync<InicioPagoResponsePSEDto>();
                 if (data == null || data.int_codigo != 1)
                     return ErrorInicioPagoResponse(-1);
 
@@ -111,7 +112,7 @@ namespace Aplication.Services.ZonaPagos
             return response;
         }
 
-        private static IniciarPagoResponseDto ErrorInicioPagoResponse(int cod_status) =>
+        private static InicioPagoResponsePSEDto ErrorInicioPagoResponse(int cod_status) =>
             new()
             {
                 str_descripcion_error = GenerarEstadoIntento(cod_status),
@@ -120,7 +121,7 @@ namespace Aplication.Services.ZonaPagos
                 int_codigo = 2,
             };
 
-        private static VerificarPagoResponseDto ErrorVerificarPagoResponse(int cod_status) =>
+        private static VerificacionPagoPSEResponse ErrorVerificarPagoResponse(int cod_status) =>
             new()
             {
                 str_detalle = GenerarEstadoIntento(cod_status),
@@ -130,7 +131,7 @@ namespace Aplication.Services.ZonaPagos
                 int_error = cod_status,
             };
 
-        private bool ValidarDatos(IniciarPagoParams pago)
+        private bool ValidarDatos(InicioPagoPSEParams pago)
         {
             if (
                 string.IsNullOrEmpty(pago.InformacionPago.str_id_cliente)
@@ -156,14 +157,14 @@ namespace Aplication.Services.ZonaPagos
             return true;
         }
 
-        private void CrearIntentoEHistorial(IniciarPagoParams pago, string estado_cobol, string detalle_cobol)
+        private void CrearIntentoEHistorial(InicioPagoPSEParams pago, string estado_cobol, string detalle_cobol)
         {
             var intento = _mapper.Map<INTENTOSZP>(pago);
             _context.INTENTOSZP.Add(intento);
             _context.HISTORIALZP.Add(CrearHistorial(intento, estado_cobol, detalle_cobol));
         }
 
-        public async Task<VerificarPagoResponseDto> VerificarPago(VerificarPagoParams datos)
+        public async Task<VerificacionPagoPSEResponse> VerificarPago(VerificacionPagoPSEParams datos)
         {
             try
             {
@@ -184,7 +185,7 @@ namespace Aplication.Services.ZonaPagos
                     return ErrorVerificarPagoResponse(-1);
                 }
 
-                var data = await result.Content.ReadFromJsonAsync<VerificarPagoResponseDto>();
+                var data = await result.Content.ReadFromJsonAsync<VerificacionPagoPSEResponse>();
 
                 var ultimoIntento = BuscarUltimoIntento(data?.str_res_pago);
                 data.str_res_pago = !string.IsNullOrEmpty(ultimoIntento) ? ultimoIntento + " ; " : string.Empty;
@@ -277,14 +278,14 @@ namespace Aplication.Services.ZonaPagos
             };
         }
 
-        public async Task<ServiceResponse<List<CargarFacturas>>> CargasFacturas()
+        public async Task<ServiceResponse<List<FacturaParams>>> CargasFacturas()
         {
-            var response = new ServiceResponse<List<CargarFacturas>>();
+            var response = new ServiceResponse<List<FacturaParams>>();
             try
             {
                 var db_estados = await _context
                     .INTENTOSZP.AsNoTracking()
-                    .Select(i => new CargarFacturas
+                    .Select(i => new FacturaParams
                     {
                         id_pago = i.id_pago,
                         flt_total_con_iva = i.flt_total_con_iva,
@@ -327,7 +328,7 @@ namespace Aplication.Services.ZonaPagos
             var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                var request = new VerificarPagoParams
+                var request = new VerificacionPagoPSEParams
                 {
                     int_id_comercio = id_comercio,
                     str_usr_comercio = _claves.Value.StrUsrComercio,

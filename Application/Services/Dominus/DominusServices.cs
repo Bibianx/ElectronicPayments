@@ -1,23 +1,23 @@
-using System.Text.Json;
-using Aplication.DTOs.Dominus;
+using Infraestructure.ExternalAPI.DTOs.Dominus;
 using Microsoft.AspNetCore.WebUtilities;
+using System.Text.Json;
 
 namespace Aplication.Services.Dominus
 {
     public interface IDominus
     {
-        Task<ServiceResponse<ResponseToken>> GenerarToken(RequestToken request);
+        Task<ServiceResponse<TokenResponse>> GenerarToken(TokenParams request);
         Task<ServiceResponse<ResponseListadoConsolidados>> ConsultarListadoConsolidados(RequestListadoConsolidados request);
-        Task<ServiceResponse<ConsultaVentasConsolidadoResponse>> ConsultarVentasConsolidado(RequestConsultaVentasConsolidado request);
+        Task<ServiceResponse<ConsultaVentasConsolidadoResponse>> ConsultarVentasConsolidado(ConsultaVentasConsolidadoParams request);
     }
 
     public class DominusServices(IHttpClientFactory httpClientFactory) : IDominus
     {
         private readonly IHttpClientFactory _httpClientFactory = httpClientFactory;
         private static string token_cache;
-        public async Task<ServiceResponse<ResponseToken>> GenerarToken(RequestToken request)
+        public async Task<ServiceResponse<TokenResponse>> GenerarToken(TokenParams request)
         {
-            var response = new ServiceResponse<ResponseToken>();
+            var response = new ServiceResponse<TokenResponse>();
             try
             {
                 var cliente = _httpClientFactory.CreateClient("Dominus");
@@ -30,12 +30,12 @@ namespace Aplication.Services.Dominus
                     return response;
                 }
 
-                var contenido_respuesta = await consulta_api_dominus.Content.ReadFromJsonAsync<ResponseToken>();
+                var contenido_respuesta = await consulta_api_dominus.Content.ReadFromJsonAsync<TokenResponse>();
                 token_cache = contenido_respuesta.access_token;
                 
                 response.success = true;
                 response.message = "Token generado exitosamente";
-                response.data = new ResponseToken
+                response.data = new TokenResponse
                 {
                     access_token = contenido_respuesta.access_token,
                     expires_in = contenido_respuesta.expires_in,
@@ -99,7 +99,7 @@ namespace Aplication.Services.Dominus
         }
 
       
-        public async Task<ServiceResponse<ConsultaVentasConsolidadoResponse>> ConsultarVentasConsolidado(RequestConsultaVentasConsolidado request)
+        public async Task<ServiceResponse<ConsultaVentasConsolidadoResponse>> ConsultarVentasConsolidado(ConsultaVentasConsolidadoParams request)
         {
             var response = new ServiceResponse<ConsultaVentasConsolidadoResponse>();
             try

@@ -1,3 +1,4 @@
+using Infraestructure.ExternalAPI.DTOs.ZonaPagos;
 using Microsoft.Extensions.Options;
 using System.Text.Json;
 
@@ -5,8 +6,8 @@ namespace Aplication.Services.Recaudos.ZonaPagoCaja
 {
     public interface IZonaPagoCaja
     {
-        Task<ConsultaPagoDto> ConsultarFactura(ConsultaPagoParams _);
-        Task<AsientoPagoDto> AsentarPago(AsientoPagoParams _);
+        Task<ConsultaPagoCajaDto> ConsultarFactura(ConsultaPagoCajaParams _);
+        Task<AsientoPagoCajaDto> AsentarPago(AsientoPagoCajaParams _);
     }
 
     public class ZonaPagoCajaServices(
@@ -23,9 +24,9 @@ namespace Aplication.Services.Recaudos.ZonaPagoCaja
         private readonly IIndustria _industria = industria;
         private readonly DataContext _context = context;
 
-        public async Task<ConsultaPagoDto> ConsultarFactura(ConsultaPagoParams _)
+        public async Task<ConsultaPagoCajaDto> ConsultarFactura(ConsultaPagoCajaParams _)
         {
-            var response = new ConsultaPagoDto();
+            var response = new ConsultaPagoCajaDto();
             try
             {
                 int comercio_perteneciente = ObtenerComercioPerteneciente(_);
@@ -97,10 +98,10 @@ namespace Aplication.Services.Recaudos.ZonaPagoCaja
             return response;
         }
 
-        private static ConsultaPagoDto ErrorResponseConsulta(string cod_status) =>
+        private static ConsultaPagoCajaDto ErrorResponseConsulta(string cod_status) =>
             new() { Descripcion_estado = GenerarEstadoConsulta(cod_status), Codigo_Estado = cod_status };
 
-        public bool ValidarCredenciales(ConsultaPagoParams datos)
+        public bool ValidarCredenciales(ConsultaPagoCajaParams datos)
         {
             string pwdComercio;
             int idComercio;
@@ -128,7 +129,7 @@ namespace Aplication.Services.Recaudos.ZonaPagoCaja
                 && !string.IsNullOrEmpty(datos.Referencia_pago);
         }
 
-        public int ObtenerComercioPerteneciente(ConsultaPagoParams datos)
+        public int ObtenerComercioPerteneciente(ConsultaPagoCajaParams datos)
         {
             if (_options_zp.Value.IntIdComercio.ToString() == datos.Id_Comercio.ToString())
                 return 1;
@@ -173,9 +174,9 @@ namespace Aplication.Services.Recaudos.ZonaPagoCaja
             return string.Join("|", campos.Select(c => c?.ToString()?.Trim() ?? " "));
         }
 
-        public async Task<AsientoPagoDto> AsentarPago(AsientoPagoParams _)
+        public async Task<AsientoPagoCajaDto> AsentarPago(AsientoPagoCajaParams _)
         {
-            var response = new AsientoPagoDto();
+            var response = new AsientoPagoCajaDto();
             try
             {
                 int comercio_perteneciente = ObtenerComercioPerteneciente(_);
@@ -257,7 +258,7 @@ namespace Aplication.Services.Recaudos.ZonaPagoCaja
             return response;
         }
 
-        private static AsientoPagoDto ErrorResponseAsiento(string cod_status, string severidad) =>
+        private static AsientoPagoCajaDto ErrorResponseAsiento(string cod_status, string severidad) =>
             new()
             {
                 Descripcion = GenerarEstadoAsiento(cod_status),

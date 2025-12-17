@@ -1,4 +1,4 @@
-using Aplication.DTOs.Dominus;
+using Infraestructure.ExternalAPI.DTOs.Dominus;
 using Aplication.Services.Dominus;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,7 +11,7 @@ namespace Api.Controllers.Dominus
         private readonly IDominus _dominusService = dominus_service;
 
         [HttpPost("autenticacion/token")]
-        public async Task<ActionResult<ServiceResponse<ResponseToken>>> GenerarToken([FromBody] RequestToken request)
+        public async Task<ActionResult<ServiceResponse<TokenResponse>>> GenerarToken([FromBody] TokenParams request)
         {
             return await _dominusService.GenerarToken(request);
         }
@@ -23,7 +23,7 @@ namespace Api.Controllers.Dominus
         }
 
         [HttpGet("consolidated/sales")]
-        public async Task<ActionResult<ServiceResponse<ConsultaVentasConsolidadoResponse>>> ConsultarVentasConsolidado([FromQuery] RequestConsultaVentasConsolidado request)
+        public async Task<ActionResult<ServiceResponse<ConsultaVentasConsolidadoResponse>>> ConsultarVentasConsolidado([FromQuery] ConsultaVentasConsolidadoParams request)
         {
             return await _dominusService.ConsultarVentasConsolidado(request);
         }

@@ -1,3 +1,4 @@
+using Infraestructure.ExternalAPI.DTOs.ZonaPagos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -12,13 +13,13 @@ namespace Api.Controllers.ZonaPagos
         private readonly IZonaPagoCaja _servicesZonaPagoCaja = ZonaPagoCajaServices;
 
         [HttpPost("consultar-pago")]
-        public async Task<ActionResult<ConsultaPagoDto>> ConsultarFacturas(ConsultaPagoParams _)
+        public async Task<ActionResult<ConsultaPagoCajaDto>> ConsultarFacturas(ConsultaPagoCajaParams _)
         {
             return await _servicesZonaPagoCaja.ConsultarFactura(_);
         }
 
         [HttpPost("asentar-pago")]
-        public async Task<ActionResult<AsientoPagoDto>> AsentarPago(AsientoPagoParams _)
+        public async Task<ActionResult<AsientoPagoCajaDto>> AsentarPago(AsientoPagoCajaParams _)
         {
             return await _servicesZonaPagoCaja.AsentarPago(_);
         }

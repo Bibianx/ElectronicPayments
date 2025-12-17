@@ -1,16 +1,5 @@
 namespace Aplication.DTOs.Industria
 {
-    //DTOS DLLS COBOL ICA 👌🫓
-    public class RequestConfig
-    {
-        public string datosh { get; set; }
-        public string LN1 { get; set; }
-        public string LN2 { get; set; }
-        public string LN3 { get; set; }
-    }
-
-    public class ResponseConfig : EstructuraResponseDLL;
-
     public class RequestIYC006G
     {
         public string sesion { get; set; }

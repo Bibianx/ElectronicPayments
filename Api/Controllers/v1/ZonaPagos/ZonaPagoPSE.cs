@@ -1,3 +1,4 @@
+using Infraestructure.ExternalAPI.DTOs.ZonaPagos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -12,12 +13,12 @@ namespace Api.Controllers.ZonaPagos
         private readonly IZonaPagoPSE _servicesZonaPago = ZonaPagoPSEServices;
 
         [HttpPost("iniciar-pago")]
-        public async Task<ActionResult<IniciarPagoResponseDto>> IniciarPago(IniciarPagoParams _)
+        public async Task<ActionResult<InicioPagoResponsePSEDto>> IniciarPago(InicioPagoPSEParams _)
         {
             return await _servicesZonaPago.IniciarPago(_);
         }
         [HttpPost("verificar-pago")]
-        public async Task<ActionResult<VerificarPagoResponseDto>> VerificarPago(VerificarPagoParams _)
+        public async Task<ActionResult<VerificacionPagoPSEResponse>> VerificarPago(VerificacionPagoPSEParams _)
         {
             return await _servicesZonaPago.VerificarPago(_);
         }
@@ -27,7 +28,7 @@ namespace Api.Controllers.ZonaPagos
             await _servicesZonaPago.ProcesarWebHook(id_comercio, id_pago);
         }
         [HttpGet("consultar-facturas")]
-        public async Task<ActionResult<ServiceResponse<List<CargarFacturas>>>> CargasFacturas()
+        public async Task<ActionResult<ServiceResponse<List<FacturaParams>>>> CargasFacturas()
         {
             return await _servicesZonaPago.CargasFacturas();
         }
