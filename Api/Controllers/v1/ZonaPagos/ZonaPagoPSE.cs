@@ -1,8 +1,5 @@
-using Aplication.DTOs.ZonaPagos;
-using Aplication.Services.ZonaPagos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Models.Response;
 
 namespace Api.Controllers.ZonaPagos
 {

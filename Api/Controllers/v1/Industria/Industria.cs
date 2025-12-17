@@ -1,5 +1,3 @@
-using Aplication.DTOs.Industria;
-using Aplication.Services.Industria;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

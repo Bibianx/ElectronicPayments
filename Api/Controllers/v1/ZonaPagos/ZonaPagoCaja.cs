@@ -1,5 +1,3 @@
-using Aplication.DTOs.ZonaPagos;
-using Aplication.Services.Recaudos.ZonaPagoCaja;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
