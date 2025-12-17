@@ -1,7 +1,5 @@
 using Domain.Entities.Epayco;
-using Domain.Entities.Recaudos;
 using Domain.Entities.ZonaPagos;
-using Microsoft.EntityFrameworkCore;
 
 namespace Models
 {
