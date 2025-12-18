@@ -1,3 +1,4 @@
+using Infrastructure.ExternalAPI.Common.Response;
 using Infraestructure.ExternalAPI.DTOs.Dominus;
 using Aplication.Services.Dominus;
 using Microsoft.AspNetCore.Mvc;

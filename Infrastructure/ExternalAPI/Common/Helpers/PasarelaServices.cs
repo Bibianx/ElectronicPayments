@@ -1,10 +1,11 @@
 using JsonSerializer = System.Text.Json.JsonSerializer;
+using Infraestructure.ExternalAPI.DTOs.ZonaPagos;
+using Infrastructure.ExternalAPI.Common.Response;
 using System.Text.RegularExpressions;
 using Microsoft.Extensions.Options;
 using Domain.Entities.ZonaPagos;
 using System.Text.Json;
 using System.Net;
-using Infraestructure.ExternalAPI.DTOs.ZonaPagos;
 
 namespace Common
 {

@@ -1,4 +1,5 @@
 using Infraestructure.ExternalAPI.DTOs.Dominus;
+using Infrastructure.ExternalAPI.Common.Response;
 using Microsoft.AspNetCore.WebUtilities;
 using System.Text.Json;
 

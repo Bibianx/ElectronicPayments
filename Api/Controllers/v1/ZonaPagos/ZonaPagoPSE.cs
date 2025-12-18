@@ -1,4 +1,5 @@
 using Infraestructure.ExternalAPI.DTOs.ZonaPagos;
+using Infrastructure.ExternalAPI.Common.Response;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
