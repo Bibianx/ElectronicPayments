@@ -2,31 +2,23 @@ using Domain.Entities.ZonaPagos;
 using Infraestructure.ExternalAPI.DTOs.ZonaPagos;
 using Microsoft.Extensions.Options;
 
-namespace Infraestructure.BackgroundServices
+namespace Infraestructure.ExternalAPI.Common.Helpers
 {
-    public class SONDAServices(IServiceScopeFactory scopeFactory, ILogger<SONDAServices> logger, IOptions<ClavesPSE> opcionesZonaPagos)
-        : BackgroundService
+    public interface ISONDAServices
     {
-        private readonly IServiceScopeFactory _scopeFactory = scopeFactory;
+        Task ConsultarPagosPendientes(CancellationToken token);
+    }
+    public class SONDAServices(DataContext context, IZonaPagoPSE zonaPagoService, IPasarelaServices pasarela, ILogger<SONDAServices> logger, IOptions<ClavesPSE> opcionesZonaPagos)
+        : ISONDAServices
+    {
+        private readonly IZonaPagoPSE zonaPagoService = zonaPagoService;
         private readonly ClavesPSE _claves = opcionesZonaPagos.Value;
         private readonly ILogger<SONDAServices> _logger = logger;
+        private readonly IPasarelaServices helpers = pasarela;
+        private readonly DataContext context = context;
 
-        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        public async Task ConsultarPagosPendientes(CancellationToken token)
         {
-            while (!stoppingToken.IsCancellationRequested)
-            {
-                await Task.Delay(TimeSpan.FromMinutes(10), stoppingToken);
-                await ConsultarPagosPendientes(stoppingToken);
-            }
-        }
-
-        private async Task ConsultarPagosPendientes(CancellationToken token)
-        {
-            using var scope = _scopeFactory.CreateScope();
-            var context = scope.ServiceProvider.GetRequiredService<DataContext>();
-            var zonaPagoService = scope.ServiceProvider.GetRequiredService<IZonaPagoPSE>();
-            var helpers = scope.ServiceProvider.GetRequiredService<IPasarelaServices>();
-
             try
             {
                 var pagos_pendientes = await context
@@ -65,8 +57,7 @@ namespace Infraestructure.BackgroundServices
                             await context.SaveChangesAsync(token);
                         }
                     }
-
-                    await Task.Delay(TimeSpan.FromSeconds(1), token);
+                    await Task.Delay(1000, token);      
                 }
             }
             catch (Exception ex)
