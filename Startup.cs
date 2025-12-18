@@ -1,7 +1,6 @@
 global using System.ComponentModel.DataAnnotations.Schema;
 global using Aplication.Services.Recaudos.ZonaPagoCaja;
 global using System.ComponentModel.DataAnnotations;
-global using Infraestructure.BackgroundServices;
 global using Aplication.Services.Industria;
 global using Aplication.Services.ZonaPagos;
 global using Microsoft.EntityFrameworkCore;
@@ -19,6 +18,8 @@ using Infraestructure.ExternalAPI.Mappers.ZonaPagos;
 using Infraestructure.ExternalAPI.DTOs.ZonaPagos;
 using Infraestructure.ExternalAPI.DTOs.Dominus;
 using Aplication.Services.Dominus;
+using Aplication.Host.InicializarHost;
+using Infraestructure.ExternalAPI.Common.Helpers;
 
 public class Startup(IConfiguration configuration)
 {
@@ -37,7 +38,7 @@ public class Startup(IConfiguration configuration)
             .AddJsonOptions(options =>
             {
                 options.JsonSerializerOptions.PropertyNamingPolicy = null;
-                options.JsonSerializerOptions.DictionaryKeyPolicy = null; // opcional
+                options.JsonSerializerOptions.DictionaryKeyPolicy = null;
                 options.JsonSerializerOptions.PropertyNameCaseInsensitive = false;
             });
 
@@ -113,9 +114,12 @@ public class Startup(IConfiguration configuration)
         services.AddScoped<IPasarelaServices, PasarelaServices>();
         services.AddScoped<IZonaPagoCaja, ZonaPagoCajaServices>();
         services.AddScoped<IZonaPagoPSE, ZonaPagoPSEServices>();
+        services.AddScoped<ISONDAServices, SONDAServices>(); 
         services.AddScoped<IIndustria, IndustriaServices>();
         services.AddScoped<IDominus, DominusServices>();
-        services.AddHostedService<SONDAServices>(); 
+
+        //Host tarea en segundo plano
+        services.AddHostedService<HostPagos>(); 
 
         //Proveedores servicios de pago externos
         ConfigureHttpClient(services, Configuration, "ZonaPagos"); //Municipio de Villanueva
