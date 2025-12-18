@@ -1,4 +1,4 @@
-namespace Models.Response
+namespace Infrastructure.ExternalAPI.Common.Response
 {
     public class BaseResponse
     {
