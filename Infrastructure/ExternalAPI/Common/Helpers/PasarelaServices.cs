@@ -28,7 +28,6 @@ namespace Common
         IOptions<ClavesMonterrey> options_monterrey,
         IOptions<ClavesCAJAZP> options_caja,
         IOptions<ClavesPSE> options_pse,
-        IConfiguration configuration,
         DataContext context
     ) : IPasarelaServices
     {
@@ -36,88 +35,8 @@ namespace Common
         private static readonly string[] array_estados = ["1", "1000", "888", "999"];
         private readonly IOptions<ClavesCAJAZP> options_caja = options_caja;
         private readonly IOptions<ClavesPSE> _options_pse = options_pse;
-        private readonly IConfiguration _configuration = configuration;
         private readonly DataContext _context = context;
 
-        public (string, string) ObtenerPropiedadesPipeline(string response)
-        {
-            var partes = (response ?? "").Split('|', StringSplitOptions.TrimEntries);
-            return (partes.Length > 3 ? partes[3] : "", partes.Length > 4 ? partes[4] : "");
-        }
-
-        public string GenerarEstadoPago(string int_estado_pago)
-        {
-            if (string.IsNullOrEmpty(int_estado_pago))
-                return "ERROR";
-
-            return int_estado_pago switch
-            {
-                "200" => "PAGO INICIADO",
-                "888" => "PAGO PENDIENTE POR INICIAR",
-                "999" => "PAGO PENDIENTE POR FINALIZAR",
-                "4001" => "PENDIENTE POR CR",
-                "4000" => "RECHAZADO CR",
-                "4003" => "ERROR CR",
-                "1000" => "PAGO RECHAZADO",
-                "1001" => "ERROR ENTRE ACH Y EL BANCO (RECHAZADA)",
-                "1" => "PAGO FINALIZADO OK",
-                _ => "ERROR",
-            };
-        }
-
-        public string ObtenerIPComercio(string id_comercio)
-        {
-            if (id_comercio == options_caja.Value.IntIdComercio.ToString() || id_comercio == _options_pse.Value.IntIdComercio.ToString())
-            {
-                return options_caja.Value.IpVillanueva;
-            }
-            else if (id_comercio == _optionsMonterrey.Value.IntIdComercio.ToString())
-            {
-                return _optionsMonterrey.Value.IpMonterrey;
-            }
-            else
-                return string.Empty;
-        }
-
-        //FUNCIONES PARA INDUSTRIA Y COMERCIO POWER 👌🫓
-        public async Task<EstructuraResponseDLL> ActualizarEstadoPowerICA(RequestIYC007 request, string ip_server_comercio)
-        {
-            return await EjecutarDllGenerica<RequestIYC007, EstructuraResponseDLL>(
-                ip_server_comercio,
-                @"INDUSTRIA_V2/v2/app/impuesto/IYC007.DLL",
-                request
-            );
-        }
-
-        public async Task<EstructuraResponseDLL> ContabilizarFacturaAprobadaICA(RequestIYC006G request, string ip_server_comercio)
-        {
-            return await EjecutarDllGenerica<RequestIYC006G, EstructuraResponseDLL>(
-                ip_server_comercio,
-                @"INDUSTRIA_V2/v2/app/impuesto/IYC006G.DLL",
-                request
-            );
-        }
-
-        public async Task<EstructuraResponseDLL> CrearTicketPagoAprobadoICA(RequestIYC005 request, string ip_server_comercio)
-        {
-            return await EjecutarDllGenerica<RequestIYC005, EstructuraResponseDLL>(
-                ip_server_comercio,
-                @"INDUSTRIA_V2/v2/app/impuesto/IYC005.DLL",
-                request
-            );
-        }
-
-        //FUNCIONES PARA PREDIAL POWER 👌🫓
-        // public async Task ContabilizarFacturaAprobadaPREDIAL(object request, string ip_server_comercio) //TRequest Y TResponse predial
-        // {
-        //     return await EjecutarDllGenerica<RequestIYC005, EstructuraResponseDLL>(
-        //         ip_server_comercio,
-        //         @"INDUSTRIA_V2/v2/app/impuesto/IYC005.DLL",
-        //         request
-        //     );
-        // }
-
-        //FUNCION GENERICA PARA EJECUTAR DLLS Y DESERIALIZAR DATA (tipado request y response) 👌🫓
         public async Task<TResponse> EjecutarDllGenerica<TRequest, TResponse>(
             string direccion_ip_comercio,
             string directorio_dll,
@@ -151,40 +70,40 @@ namespace Common
             }
         }
 
-        public decimal CalcularTotalFactura(ResponseIYC003R1 response_factura)
+        public async Task<EstructuraResponseDLL> ContabilizarFacturaAprobadaICA(RequestIYC006G request, string ip_server_comercio)
         {
-            decimal total_impto = decimal.TryParse(response_factura.MENSAJE.total_impto?.ToString(), out decimal t1) ? t1 : 0;
-            decimal sancion_min = decimal.TryParse(response_factura.MENSAJE.sancion_min?.ToString(), out decimal t2) ? t2 : 0;
-            decimal int_ad = decimal.TryParse(response_factura.MENSAJE.int_ad?.ToString(), out decimal t3) ? t3 : 0;
-            decimal monto_int = decimal.TryParse(response_factura.MENSAJE.monto_int?.ToString(), out decimal t4) ? t4 : 0;
-            decimal nro_dias = decimal.TryParse(response_factura.MENSAJE.nro_dias?.ToString(), out decimal t5) ? t5 : 0;
-
-            if (monto_int > 10) // dividir entre 100 cuando llega la cifra entera, para calculo correcto decimales
-            {
-                monto_int /= 100;
-            }
-
-            decimal subtotal = total_impto + sancion_min;
-            decimal calculo_interes = subtotal * monto_int * nro_dias / 3000m;
-            decimal interes = Math.Ceiling(calculo_interes / 1000m) * 1000m;
-            decimal total = subtotal + interes + int_ad;
-            return total;
+            return await EjecutarDllGenerica<RequestIYC006G, EstructuraResponseDLL>(
+                ip_server_comercio,
+                @"INDUSTRIA_V2/v2/app/impuesto/IYC006G.DLL",
+                request
+            );
         }
 
-        private static string GetLocalIPAddress()
+        public async Task<EstructuraResponseDLL> CrearTicketPagoAprobadoICA(RequestIYC005 request, string ip_server_comercio)
         {
-            var host = Dns.GetHostEntry(Dns.GetHostName());
-            foreach (var ip in host.AddressList)
-            {
-                if (ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
-                {
-                    return ip.ToString();
-                }
-            }
-            throw new Exception("No se pudo encontrar la dirección IP local.");
+            return await EjecutarDllGenerica<RequestIYC005, EstructuraResponseDLL>(
+                ip_server_comercio,
+                @"INDUSTRIA_V2/v2/app/impuesto/IYC005.DLL",
+                request
+            );
         }
 
-        public async Task<ServiceResponse<object>> GetDll(string ip, string directorio, object datos_dll)
+        public async Task<EstructuraResponseDLL> ActualizarEstadoPowerICA(RequestIYC007 request, string ip_server_comercio)
+        {
+            return await EjecutarDllGenerica<RequestIYC007, EstructuraResponseDLL>(
+                ip_server_comercio,
+                @"INDUSTRIA_V2/v2/app/impuesto/IYC007.DLL",
+                request
+            );
+        }
+
+        public (string, string) ObtenerPropiedadesPipeline(string response)
+        {
+            var partes = (response ?? "").Split('|', StringSplitOptions.TrimEntries);
+            return (partes.Length > 3 ? partes[3] : "", partes.Length > 4 ? partes[4] : "");
+        }
+
+         public async Task<ServiceResponse<object>> GetDll(string ip, string directorio, object datos_dll)
         {
             ServiceResponse<object> response = new();
             try
@@ -256,12 +175,7 @@ namespace Common
             return response;
         }
 
-        [GeneratedRegex("\\s{2,}")]
-        private static partial Regex MyRegex();
-
-
-        //FUNCION PARA ACTUALIZACION DE ESTADO PARTE WEB (DB) y POWER (CONTABILIDADES)👌🫓
-        public async Task ActualizarEstadoPago(HISTORIALZP pago, VerificacionPagoPSEResponse responseData)
+                public async Task ActualizarEstadoPago(HISTORIALZP pago, VerificacionPagoPSEResponse responseData)
         {
             var (int_pago_terminado, int_estado_pago) = ObtenerPropiedadesPipeline(responseData.str_res_pago);
 
@@ -362,5 +276,87 @@ namespace Common
                 }
             }
         }
+
+        public decimal CalcularTotalFactura(ResponseIYC003R1 response_factura)
+        {
+            decimal total_impto = decimal.TryParse(response_factura.MENSAJE.total_impto?.ToString(), out decimal t1) ? t1 : 0;
+            decimal sancion_min = decimal.TryParse(response_factura.MENSAJE.sancion_min?.ToString(), out decimal t2) ? t2 : 0;
+            decimal int_ad = decimal.TryParse(response_factura.MENSAJE.int_ad?.ToString(), out decimal t3) ? t3 : 0;
+            decimal monto_int = decimal.TryParse(response_factura.MENSAJE.monto_int?.ToString(), out decimal t4) ? t4 : 0;
+            decimal nro_dias = decimal.TryParse(response_factura.MENSAJE.nro_dias?.ToString(), out decimal t5) ? t5 : 0;
+
+            if (monto_int > 10) // dividir entre 100 cuando llega la cifra entera, para calculo correcto decimales
+            {
+                monto_int /= 100;
+            }
+
+            decimal subtotal = total_impto + sancion_min;
+            decimal calculo_interes = subtotal * monto_int * nro_dias / 3000m;
+            decimal interes = Math.Ceiling(calculo_interes / 1000m) * 1000m;
+            decimal total = subtotal + interes + int_ad;
+            return total;
+        }
+
+
+        public string GenerarEstadoPago(string int_estado_pago)
+        {
+            if (string.IsNullOrEmpty(int_estado_pago))
+                return "ERROR";
+
+            return int_estado_pago switch
+            {
+                "200" => "PAGO INICIADO",
+                "888" => "PAGO PENDIENTE POR INICIAR",
+                "999" => "PAGO PENDIENTE POR FINALIZAR",
+                "4001" => "PENDIENTE POR CR",
+                "4000" => "RECHAZADO CR",
+                "4003" => "ERROR CR",
+                "1000" => "PAGO RECHAZADO",
+                "1001" => "ERROR ENTRE ACH Y EL BANCO (RECHAZADA)",
+                "1" => "PAGO FINALIZADO OK",
+                _ => "ERROR",
+            };
+        }
+
+        public string ObtenerIPComercio(string id_comercio)
+        {
+            if (id_comercio == options_caja.Value.IntIdComercio.ToString() || id_comercio == _options_pse.Value.IntIdComercio.ToString())
+            {
+                return options_caja.Value.IpVillanueva;
+            }
+            else if (id_comercio == _optionsMonterrey.Value.IntIdComercio.ToString())
+            {
+                return _optionsMonterrey.Value.IpMonterrey;
+            }
+            else
+                return string.Empty;
+        }
+
+        // public async Task ContabilizarFacturaAprobadaPREDIAL(object request, string ip_server_comercio) //TRequest Y TResponse predial
+        // {
+        //     return await EjecutarDllGenerica<RequestIYC005, EstructuraResponseDLL>(
+        //         ip_server_comercio,
+        //         @"INDUSTRIA_V2/v2/app/impuesto/IYC005.DLL",
+        //         request
+        //     );
+        // }
+
+
+        private static string GetLocalIPAddress()
+        {
+            var host = Dns.GetHostEntry(Dns.GetHostName());
+            foreach (var ip in host.AddressList)
+            {
+                if (ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                {
+                    return ip.ToString();
+                }
+            }
+            throw new Exception("No se pudo encontrar la dirección IP local.");
+        }
+
+        [GeneratedRegex("\\s{2,}")]
+        private static partial Regex MyRegex();
+
     }
 }
