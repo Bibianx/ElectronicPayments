@@ -10,7 +10,6 @@ global using Aplication.DTOs.Industria;
 global using Domain.Entities.Recaudos;
 global using Polly.Extensions.Http;
 global using FluentValidation;
-global using Models.Response;
 global using AutoMapper;
 global using Common;
 global using Models;
