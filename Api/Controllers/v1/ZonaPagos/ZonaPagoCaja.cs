@@ -1,5 +1,6 @@
 using Infraestructure.ExternalAPI.DTOs.ZonaPagos;
 using Microsoft.AspNetCore.Authorization;
+using Aplication.UseCases.ZonaPagos;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers.ZonaPagos
@@ -8,20 +9,21 @@ namespace Api.Controllers.ZonaPagos
     [Route("api/v{version:apiVersion}/[controller]")]
     [ApiVersion("1.0")]    
     [AllowAnonymous]
-    public class ZonaPagosCajaController(IZonaPagoCaja ZonaPagoCajaServices) : ControllerBase
+    public class ZonaPagosCajaController(
+        ConsultarFacturaUseCase consultarFacturaUseCase,
+        AsentarPagoUseCase asentarPagoUseCase
+    ) : ControllerBase
     {
-        private readonly IZonaPagoCaja _servicesZonaPagoCaja = ZonaPagoCajaServices;
-
         [HttpPost("consultar-pago")]
         public async Task<ActionResult<ConsultaPagoCajaDto>> ConsultarFacturas(ConsultaPagoCajaParams _)
         {
-            return await _servicesZonaPagoCaja.ConsultarFactura(_);
+            return await consultarFacturaUseCase.ConsultarFactura(_);
         }
 
         [HttpPost("asentar-pago")]
         public async Task<ActionResult<AsientoPagoCajaDto>> AsentarPago(AsientoPagoCajaParams _)
         {
-            return await _servicesZonaPagoCaja.AsentarPago(_);
+            return await asentarPagoUseCase.AsentarPago(_);
         }
         
     }

@@ -1,3 +1,4 @@
+using Aplication.UseCases.ZonaPagos;
 using Infraestructure.ExternalAPI.DTOs.ZonaPagos;
 using Infrastructure.ExternalAPI.Common.Response;
 using Microsoft.AspNetCore.Authorization;
@@ -9,29 +10,36 @@ namespace Api.Controllers.ZonaPagos
     [Route("api/v{version:apiVersion}/[controller]")]
     [ApiVersion("1.0")]    
     [AllowAnonymous]
-    public class ZonaPagosPSEController(IZonaPagoPSE ZonaPagoPSEServices) : ControllerBase
+    public class ZonaPagosPSEController(
+        ProcesarWebHookUseCase procesarWebHookUseCase,
+        CargasFacturasUseCase cargasFacturasUseCase,
+        VerificarPagoUseCase verificarPagoUseCase,
+        IniciarPagoUseCase iniciarPagoUseCase
+    ) : ControllerBase
     {
-        private readonly IZonaPagoPSE _servicesZonaPago = ZonaPagoPSEServices;
-
         [HttpPost("iniciar-pago")]
-        public async Task<ActionResult<InicioPagoResponsePSEDto>> IniciarPago(InicioPagoPSEParams _)
+        public async Task<ActionResult<InicioPagoResponsePSEDto>> ConsultarFacturas(InicioPagoPSEParams _)
         {
-            return await _servicesZonaPago.IniciarPago(_);
+            return await iniciarPagoUseCase.ConsultarFactura(_);
         }
+
         [HttpPost("verificar-pago")]
         public async Task<ActionResult<VerificacionPagoPSEResponse>> VerificarPago(VerificacionPagoPSEParams _)
         {
-            return await _servicesZonaPago.VerificarPago(_);
+            return await verificarPagoUseCase.VerificarPago(_);
         }
-        [HttpGet("procesar-webhook-zp")]
-        public async Task ProcesarWebHook([FromQuery] int id_comercio, [FromQuery] string id_pago)
-        {
-            await _servicesZonaPago.ProcesarWebHook(id_comercio, id_pago);
-        }
+
         [HttpGet("consultar-facturas")]
         public async Task<ActionResult<ServiceResponse<List<FacturaParams>>>> CargasFacturas()
         {
-            return await _servicesZonaPago.CargasFacturas();
+            return await cargasFacturasUseCase.CargasFacturas();
+        }
+
+        [HttpPost("procesar-webhook-zp")]
+        public async Task<IActionResult> ProcesarWebHook([FromQuery] int id_comercio, [FromQuery] string id_pago)
+        {
+            await procesarWebHookUseCase.ProcesarWebHook(id_comercio, id_pago);
+            return Ok();
         }
     }
 }
