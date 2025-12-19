@@ -1,3 +1,4 @@
+using Aplication.Interfaces.ZonaPagos;
 using Domain.Entities.ZonaPagos;
 using Infraestructure.ExternalAPI.DTOs.ZonaPagos;
 using Microsoft.Extensions.Options;
