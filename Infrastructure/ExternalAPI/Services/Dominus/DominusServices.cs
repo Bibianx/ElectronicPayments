@@ -1,18 +1,12 @@
-using Infraestructure.ExternalAPI.DTOs.Dominus;
 using Infrastructure.ExternalAPI.Common.Response;
+using Infraestructure.ExternalAPI.DTOs.Dominus;
 using Microsoft.AspNetCore.WebUtilities;
+using Aplication.Interfaces.Dominus;
 using System.Text.Json;
 
-namespace Aplication.Services.Dominus
+namespace Infraestructure.ExternalAPI.Services.Dominus
 {
-    public interface IDominus
-    {
-        Task<ServiceResponse<TokenResponse>> GenerarToken(TokenParams request);
-        Task<ServiceResponse<ResponseListadoConsolidados>> ConsultarListadoConsolidados(RequestListadoConsolidados request);
-        Task<ServiceResponse<ConsultaVentasConsolidadoResponse>> ConsultarVentasConsolidado(ConsultaVentasConsolidadoParams request);
-    }
-
-    public class DominusServices(IHttpClientFactory httpClientFactory) : IDominus
+    public sealed class DominusServices(IHttpClientFactory httpClientFactory) : IDominus
     {
         private readonly IHttpClientFactory _httpClientFactory = httpClientFactory;
         private static string token_cache;

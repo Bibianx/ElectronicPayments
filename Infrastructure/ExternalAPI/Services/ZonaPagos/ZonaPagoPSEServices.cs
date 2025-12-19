@@ -2,16 +2,10 @@ using Infrastructure.ExternalAPI.Common.Response;
 using Infraestructure.ExternalAPI.DTOs.ZonaPagos;
 using Microsoft.Extensions.Options;
 using Domain.Entities.ZonaPagos;
+using Aplication.Interfaces.ZonaPagos;
 
 namespace Aplication.Services.ZonaPagos
 {
-    public interface IZonaPagoPSE
-    {
-        Task<VerificacionPagoPSEResponse> VerificarPago(VerificacionPagoPSEParams _);
-        Task<InicioPagoResponsePSEDto> IniciarPago(InicioPagoPSEParams _);
-        Task<ServiceResponse<List<FacturaParams>>> CargasFacturas();
-        Task ProcesarWebHook(int id_comercio, string id_pago);
-    }
 
     public class ZonaPagoPSEServices(
         IHttpClientFactory httpClientFactory,

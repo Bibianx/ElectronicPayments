@@ -1,16 +1,11 @@
+using Aplication.Interfaces.ZonaPagos;
 using Infraestructure.ExternalAPI.DTOs.ZonaPagos;
 using Microsoft.Extensions.Options;
 using System.Text.Json;
 
 namespace Aplication.Services.Recaudos.ZonaPagoCaja
 {
-    public interface IZonaPagoCaja
-    {
-        Task<ConsultaPagoCajaDto> ConsultarFactura(ConsultaPagoCajaParams _);
-        Task<AsientoPagoCajaDto> AsentarPago(AsientoPagoCajaParams _);
-    }
-
-    public class ZonaPagoCajaServices(
+    public sealed class ZonaPagoCajaServices(
         IOptions<ClavesMonterrey> options_monterrey,
         IPasarelaServices pasarela_services,
         IOptions<ClavesCAJAZP> options_zp,
