@@ -15,11 +15,15 @@ global using Models;
 global using Polly;
 
 using Infraestructure.ExternalAPI.Mappers.ZonaPagos;
+using Infraestructure.ExternalAPI.Services.Dominus;
 using Infraestructure.ExternalAPI.DTOs.ZonaPagos;
-using Infraestructure.ExternalAPI.DTOs.Dominus;
-using Aplication.Services.Dominus;
-using Aplication.Host.InicializarHost;
 using Infraestructure.ExternalAPI.Common.Helpers;
+using Infraestructure.ExternalAPI.DTOs.Dominus;
+using Aplication.Interfaces.ZonaPagos;
+using Aplication.Host.InicializarHost;
+using Aplication.UseCases.ZonaPagos;
+using Aplication.Interfaces.Dominus;
+using Aplication.UseCases.Dominus;
 
 public class Startup(IConfiguration configuration)
 {
@@ -111,12 +115,28 @@ public class Startup(IConfiguration configuration)
     
     private static void RegisterServices(IServiceCollection services, IConfiguration Configuration)
     {
+        //Servicios infraestructura comun 
         services.AddScoped<IPasarelaServices, PasarelaServices>();
         services.AddScoped<IZonaPagoCaja, ZonaPagoCajaServices>();
         services.AddScoped<IZonaPagoPSE, ZonaPagoPSEServices>();
         services.AddScoped<ISONDAServices, SONDAServices>(); 
         services.AddScoped<IIndustria, IndustriaServices>();
         services.AddScoped<IDominus, DominusServices>();
+
+        //Casos de uso Dominus
+        services.AddScoped<ConsultarListadoConsolidadosUseCase>();
+        services.AddScoped<ConsultarVentasConsolidadoUseCase>();
+        services.AddScoped<GenerarTokenDominusUseCase>();
+
+        //Casos de uso ZonaPagos Caja
+        services.AddScoped<ConsultarFacturaUseCase>();
+        services.AddScoped<AsentarPagoUseCase>();
+
+        //Casos de uso ZonaPagos PSE
+        services.AddScoped<ProcesarWebHookUseCase>();
+        services.AddScoped<CargasFacturasUseCase>();
+        services.AddScoped<VerificarPagoUseCase>();
+        services.AddScoped<IniciarPagoUseCase>();
 
         //Host tarea en segundo plano
         services.AddHostedService<HostPagos>(); 
