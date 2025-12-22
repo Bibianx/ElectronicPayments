@@ -15,7 +15,7 @@ namespace Infraestructure.Validators.Dominus
                 .WithMessage("La propiedad start_date no puede ser nula")
                 .Must((request, start_date) =>
                 {
-                    return start_date <= request.final_date;
+                    return string.Compare(start_date, request.final_date) <= 0;
                 })
                 .WithMessage("La propiedad start_date no puede ser mayor a final_date");
             
@@ -24,7 +24,7 @@ namespace Infraestructure.Validators.Dominus
                 .WithMessage("La propiedad final_date no puede ser nula")
                 .Must((request, final_date) =>
                 {
-                    return final_date >= request.start_date;
+                    return string.Compare(final_date, request.start_date) >= 0;
                 })
                 .WithMessage("La propiedad final_date no puede ser menor a start_date");
             
