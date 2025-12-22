@@ -3,8 +3,8 @@ namespace Infraestructure.ExternalAPI.DTOs.Dominus
     public class RequestListadoConsolidados
     {
         public int branch_id { get; set; }
-        public DateOnly? start_date { get; set; } // Formato: YYYY-MM-DD
-        public DateOnly? final_date { get; set; } // Formato: YYYY-MM-DD
+        public string start_date { get; set; } 
+        public string final_date { get; set; } 
     }
     
     public class ResponseListadoConsolidados
