@@ -16,6 +16,7 @@ global using Polly;
 
 using Infraestructure.ExternalAPI.Mappers.ZonaPagos;
 using Infraestructure.ExternalAPI.Services.Dominus;
+using Infrastructure.ExternalAPI.Services.Epayco;
 using Infraestructure.ExternalAPI.DTOs.ZonaPagos;
 using Infraestructure.ExternalAPI.Common.Helpers;
 using Infraestructure.ExternalAPI.DTOs.Dominus;
@@ -25,9 +26,9 @@ using Aplication.Host.InicializarHost;
 using Aplication.UseCases.ZonaPagos;
 using Aplication.Interfaces.Dominus;
 using Aplication.UseCases.Dominus;
-using Infrastructure.ExternalAPI.Services.Epayco;
 using Aplication.Interfaces;
 using Aplication.UseCases;
+using Api.Middlewares;
 
 public class Startup(IConfiguration configuration)
 {
@@ -86,6 +87,8 @@ public class Startup(IConfiguration configuration)
         app.UseHttpsRedirection();
 
         app.UseRouting();
+        
+        app.UseMiddleware<ErrorHandlingMiddleware>();
 
         app.UseAuthorization();
 
