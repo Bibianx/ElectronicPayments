@@ -19,6 +19,7 @@ using Infraestructure.ExternalAPI.Services.Dominus;
 using Infraestructure.ExternalAPI.DTOs.ZonaPagos;
 using Infraestructure.ExternalAPI.Common.Helpers;
 using Infraestructure.ExternalAPI.DTOs.Dominus;
+using Infraestructure.ExternalAPI.DTOs.Epayco;
 using Aplication.Interfaces.ZonaPagos;
 using Aplication.Host.InicializarHost;
 using Aplication.UseCases.ZonaPagos;
@@ -33,6 +34,7 @@ public class Startup(IConfiguration configuration)
     {
 
         services.Configure<ClavesMonterrey>(Configuration.GetSection("CajaMonterrey"));
+        services.Configure<EpaycoCredentials>(Configuration.GetSection("Epayco"));
         services.Configure<ClavesDominus>(Configuration.GetSection("Dominus"));
         services.Configure<ClavesCAJAZP>(Configuration.GetSection("CajaZP"));
         services.Configure<ClavesPSE>(Configuration.GetSection("ZonaPagos"));
