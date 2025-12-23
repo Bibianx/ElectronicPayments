@@ -1,5 +1,12 @@
 namespace Aplication.DTOs.Inventarios
 {
+
+    public class INV805FParams
+    {
+        public string nit_tercero { get; set; }
+        public string datosh { get; set; }
+    }
+
      public class INV805FResponse
     {
         public string STATUS { get; set; }
