@@ -25,6 +25,9 @@ using Aplication.Host.InicializarHost;
 using Aplication.UseCases.ZonaPagos;
 using Aplication.Interfaces.Dominus;
 using Aplication.UseCases.Dominus;
+using Infrastructure.ExternalAPI.Services.Epayco;
+using Aplication.Interfaces;
+using Aplication.UseCases;
 
 public class Startup(IConfiguration configuration)
 {
@@ -57,6 +60,7 @@ public class Startup(IConfiguration configuration)
         ConfigureFluentValidation(services);
         ConfigureConnectionDB(services);
         ConfigureApiVersion(services);
+        RegisterUseCases(services);
         ConfigureCors(services);
     }
 
@@ -85,14 +89,7 @@ public class Startup(IConfiguration configuration)
 
         app.UseAuthorization();
 
-        app.UseCors(builder =>
-        {
-            builder
-                .WithOrigins("http://localhost:8080", "http://localhost:8081")
-                .AllowAnyMethod()
-                .AllowAnyHeader()
-                .AllowCredentials();
-        });
+        app.UseCors("AllowAllOrigins");
         
         app.UseEndpoints(endpoints =>
         {
@@ -124,7 +121,19 @@ public class Startup(IConfiguration configuration)
         services.AddScoped<ISONDAServices, SONDAServices>(); 
         services.AddScoped<IIndustria, IndustriaServices>();
         services.AddScoped<IDominus, DominusServices>();
+        services.AddScoped<IEpayco, EpaycoServices>();
+        
+        //Host tarea en segundo plano
+        services.AddHostedService<HostPagos>(); 
 
+        //Proveedores servicios de pago externos
+        ConfigureHttpClient(services, Configuration, "ZonaPagos"); //Municipio de Villanueva
+        ConfigureHttpClient(services, Configuration, "Dominus"); //Estaciones de servicio
+        ConfigureHttpClient(services, Configuration, "Epayco"); //Comercializadora
+    }
+
+    private static void RegisterUseCases(IServiceCollection services)
+    {
         //Casos de uso Dominus
         services.AddScoped<ConsultarListadoConsolidadosUseCase>();
         services.AddScoped<ConsultarVentasConsolidadoUseCase>();
@@ -140,13 +149,13 @@ public class Startup(IConfiguration configuration)
         services.AddScoped<VerificarPagoUseCase>();
         services.AddScoped<IniciarPagoUseCase>();
 
-        //Host tarea en segundo plano
-        services.AddHostedService<HostPagos>(); 
-
-        //Proveedores servicios de pago externos
-        ConfigureHttpClient(services, Configuration, "ZonaPagos"); //Municipio de Villanueva
-        ConfigureHttpClient(services, Configuration, "Dominus"); //Estaciones de servicio
-        ConfigureHttpClient(services, Configuration, "Epayco"); //Comercializadora
+        //Casos de uso Epayco
+        services.AddScoped<FiltrarFacturasClienteUseCase>();
+        services.AddScoped<ObtenerFacturasClienteUseCase>();
+        services.AddScoped<TransaccionPSEUseCase>();
+        services.AddScoped<ConfirmarPSEUseCase>();
+        services.AddScoped<BasicAuthUseCase>();
+        services.AddScoped<WebHookUseCase>();
     }
 
     private static void ConfigureHttpClient(IServiceCollection services, IConfiguration configuration, string client_name)
