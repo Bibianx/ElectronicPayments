@@ -31,7 +31,7 @@ namespace Infraestructure.ExternalAPI.Common.Helpers
 
                 if (pagos_pendientes.Count == 0)
                 {
-                    _logger.LogInformation("No hay pagos pendientes para procesar");
+                    _logger.LogInformation("⚠️ No hay pagos pendientes para procesar ⚠️");
                     return;
                 }
 
@@ -46,7 +46,7 @@ namespace Infraestructure.ExternalAPI.Common.Helpers
                         }
                         catch (Exception ex)
                         {
-                            _logger.LogError(ex, "Error individual procesando el pago {PagoId}", item.intentos_zp?.str_id_pago ?? "SIN ID");
+                            _logger.LogError(ex, "❌ Error individual procesando el pago {PagoId} ❌", item.intentos_zp?.str_id_pago ?? "SIN ID");
 
                             item.fecha_fin = DateOnly.FromDateTime(DateTime.Now);
                             item.hora_fin = TimeOnly.FromDateTime(DateTime.Now);
@@ -63,7 +63,7 @@ namespace Infraestructure.ExternalAPI.Common.Helpers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error general durante el proceso de pagos: {message}", ex.Message);
+                _logger.LogError(ex, "❌ Error general durante el proceso de pagos: {Message} ❌", ex.Message);
             }
         }
 
@@ -75,7 +75,7 @@ namespace Infraestructure.ExternalAPI.Common.Helpers
                 if (verificado)
                 {
                     var estado = item.descrip_estado_fin == "PENDIENTE" ? "SIGUE PENDIENTE" : "FINALIZADO";
-                    _logger.LogInformation("intentos_zp {PagoId} procesado - {Estado}", item.intentos_zp?.str_id_pago ?? "SIN ID", estado);
+                    _logger.LogInformation("⚠️ intentos_zp {PagoId} procesado - {Estado} ⚠️", item.intentos_zp?.str_id_pago ?? "SIN ID", estado);
                 }
                 else
                 {
@@ -90,7 +90,7 @@ namespace Infraestructure.ExternalAPI.Common.Helpers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al procesar pago {PagoId}: {message}", item.intentos_zp?.str_id_pago ?? "SIN ID", ex.Message);
+                _logger.LogError(ex, "❌ Error al procesar pago {PagoId}: {Message} ❌", item.intentos_zp?.str_id_pago ?? "SIN ID", ex.Message);
                 item.fecha_fin = DateOnly.FromDateTime(DateTime.Now);
                 item.hora_fin = TimeOnly.FromDateTime(DateTime.Now);
                 item.descrip_estado_fin = "RECHAZADO POR EXCEPCIÓN";
@@ -106,7 +106,7 @@ namespace Infraestructure.ExternalAPI.Common.Helpers
             {
                 if (string.IsNullOrWhiteSpace(pago.intentos_zp?.str_id_pago))
                 {
-                    _logger.LogWarning("Pago sin ID válido. No se puede verificar.");
+                    _logger.LogWarning("⚠️ Pago sin ID válido. No se puede verificar. ⚠️");
                     return false;
                 }
 
@@ -123,7 +123,7 @@ namespace Infraestructure.ExternalAPI.Common.Helpers
 
                 if (pago_verificado == null)
                 {
-                    _logger.LogWarning("Verificación fallida: respuesta nula para pago {PagoId}", pago.intentos_zp.str_id_pago);
+                    _logger.LogWarning("⚠️ Verificación fallida: respuesta nula para pago {PagoId} ⚠️", pago.intentos_zp.str_id_pago);
                     return false;
                 }
 
@@ -133,7 +133,7 @@ namespace Infraestructure.ExternalAPI.Common.Helpers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al verificar pago {PagoId}: {message}", pago.intentos_zp?.str_id_pago ?? "SIN ID", ex.Message);
+                _logger.LogError(ex, "❌ Error al verificar pago {PagoId}: {Message} ❌", pago.intentos_zp?.str_id_pago ?? "SIN ID", ex.Message);
                 return false;
             }
         }
