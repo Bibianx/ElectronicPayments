@@ -1,11 +1,12 @@
-using JsonSerializer = System.Text.Json.JsonSerializer;
+using System.Net;
+using System.Text.Json;
+using System.Text.RegularExpressions;
+using Domain.Entities.ZonaPagos;
 using Infraestructure.ExternalAPI.DTOs.ZonaPagos;
 using Infrastructure.ExternalAPI.Common.Response;
-using System.Text.RegularExpressions;
+using Microsoft.Extensions.Http;
 using Microsoft.Extensions.Options;
-using Domain.Entities.ZonaPagos;
-using System.Text.Json;
-using System.Net;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Common
 {
@@ -26,15 +27,19 @@ namespace Common
 
     public partial class PasarelaServices(
         IOptions<ClavesMonterrey> options_monterrey,
+        IHttpClientFactory httpClientFactory,
         IOptions<ClavesCAJAZP> options_caja,
+        ILogger<PasarelaServices> logger,
         IOptions<ClavesPSE> options_pse,
         DataContext context
     ) : IPasarelaServices
     {
         private readonly IOptions<ClavesMonterrey> _optionsMonterrey = options_monterrey;
         private static readonly string[] array_estados = ["1", "1000", "888", "999"];
+        private readonly IHttpClientFactory _httpClientFactory = httpClientFactory;
         private readonly IOptions<ClavesCAJAZP> options_caja = options_caja;
         private readonly IOptions<ClavesPSE> _options_pse = options_pse;
+        private readonly ILogger<PasarelaServices> _logger = logger;
         private readonly DataContext _context = context;
 
         public async Task<TResponse> EjecutarDllGenerica<TRequest, TResponse>(
@@ -103,18 +108,19 @@ namespace Common
             return (partes.Length > 3 ? partes[3] : "", partes.Length > 4 ? partes[4] : "");
         }
 
-         public async Task<ServiceResponse<object>> GetDll(string ip, string directorio, object datos_dll)
+        public async Task<ServiceResponse<object>> GetDll(string ip, string directorio, object datos_dll)
         {
             ServiceResponse<object> response = new();
             try
             {
-                var httpClient = new HttpClient();
-                httpClient.Timeout = TimeSpan.FromMinutes(20);
+                var client = _httpClientFactory.CreateClient();
+                client.Timeout = TimeSpan.FromMinutes(10); //tiempo segun dlls, tardios en responder en algunos casos
+              
                 var data = datos_dll;
 
                 if (data != null)
                 {
-                    var jsonElement = JsonDocument.Parse(System.Text.Json.JsonSerializer.Serialize(data)).RootElement;
+                    var jsonElement = JsonDocument.Parse(JsonSerializer.Serialize(data)).RootElement;
                     var formDataCollection = new List<KeyValuePair<string, string>>();
 
                     foreach (var property in jsonElement.EnumerateObject())
@@ -129,7 +135,7 @@ namespace Common
                     var request_uri = $"http://{ip}/{directorio}";
 
                     var startTime = DateTime.Now;
-                    var response_message = await httpClient.PostAsync(request_uri, formContent).ConfigureAwait(false);
+                    var response_message = await client.PostAsync(request_uri, formContent).ConfigureAwait(false);
                     var endTime = DateTime.Now;
                     var timeElapsed = endTime - startTime;
 
@@ -175,105 +181,113 @@ namespace Common
             return response;
         }
 
-                public async Task ActualizarEstadoPago(HISTORIALZP pago, VerificacionPagoPSEResponse responseData)
+        public async Task ActualizarEstadoPago(HISTORIALZP pago, VerificacionPagoPSEResponse responseData)
         {
-            var (int_pago_terminado, int_estado_pago) = ObtenerPropiedadesPipeline(responseData.str_res_pago);
-
-            var estados_pendientes = new[] { "888", "999", "4001" };
-            pago.descrip_estado_fin = estados_pendientes.Contains(int_estado_pago) ? "PENDIENTE" : GenerarEstadoPago(int_estado_pago);
-
-            if (!estados_pendientes.Contains(int_estado_pago))
+            try
             {
-                pago.fecha_fin = DateOnly.FromDateTime(DateTime.Now);
-                pago.hora_fin = TimeOnly.FromDateTime(DateTime.Now);
-            }
+                var (int_pago_terminado, int_estado_pago) = ObtenerPropiedadesPipeline(responseData.str_res_pago);
 
-            pago.cod_estado_fin = int_estado_pago;
-            pago.json_respuesta = JsonSerializer.Serialize(responseData);
+                var estados_pendientes = new[] { "888", "999", "4001" };
+                pago.descrip_estado_fin = estados_pendientes.Contains(int_estado_pago) ? "PENDIENTE" : GenerarEstadoPago(int_estado_pago);
 
-            if (array_estados.Contains(int_estado_pago))
-            {
-                string estado_final = int_estado_pago switch
+                if (!estados_pendientes.Contains(int_estado_pago))
                 {
-                    "1" => "A",
-                    "1000" => "R",
-                    "888" or "999" => "P",
-                    _ => "E",
-                };
+                    pago.fecha_fin = DateOnly.FromDateTime(DateTime.Now);
+                    pago.hora_fin = TimeOnly.FromDateTime(DateTime.Now);
+                }
 
-                var intento = await _context
-                    .INTENTOSZP.Where(i => i.str_id_pago.Equals(pago.intentos_zp.str_id_pago))
-                    .OrderByDescending(i => i.fecha_intento)
-                    .ThenByDescending(i => i.hora_intento)
-                    .FirstOrDefaultAsync();
+                pago.cod_estado_fin = int_estado_pago;
+                pago.json_respuesta = JsonSerializer.Serialize(responseData);
 
-                if (intento != null)
+                if (array_estados.Contains(int_estado_pago))
                 {
-                    intento.estado_intento = estado_final;
-
-                    var response_estado = await ActualizarEstadoPowerICA(
-                        new RequestIYC007
-                        {
-                            sesion = "",
-                            usuario = pago.intentos_zp.str_usuario,
-                            llave_imp = intento.str_id_pago,
-                            estado = estado_final,
-                        },
-                        ObtenerIPComercio(pago.intentos_zp.int_id_comercio.ToString())
-                    );
-
-                    pago.estado_cobol_fin = response_estado.STATUS;
-                    pago.detalle_cobol_fin = response_estado.MENSAJE;
-
-                    if (estado_final == "A")
+                    string estado_final = int_estado_pago switch
                     {
-                        if (pago.intentos_zp.str_opcional1 == "ICA")
-                        {
-                            var response_contab_ica = await ContabilizarFacturaAprobadaICA(
-                                new RequestIYC006G
-                                {
-                                    sesion = "",
-                                    usuario = pago.intentos_zp.str_usuario,
-                                    llave_imp = pago.intentos_zp.str_id_pago,
-                                    recibo = pago.intentos_zp.str_opcional2,
-                                },
-                                ObtenerIPComercio(pago.intentos_zp.int_id_comercio.ToString())
-                            );
-                            //Check contabilizacion
-                            pago.contabilizado_cobol_ok = response_contab_ica?.STATUS == "00";
+                        "1" => "A",
+                        "1000" => "R",
+                        "888" or "999" => "P",
+                        _ => "E",
+                    };
 
-                            string ticket = pago.intentos_zp.numero_ticket_cobol.ToString().PadLeft(10, '0');
-                            var response_ticket = await CrearTicketPagoAprobadoICA(
-                                new RequestIYC005
-                                {
-                                    sesion = "",
-                                    usuario = pago.intentos_zp.str_usuario,
-                                    recibo = pago.intentos_zp.str_opcional2,
-                                    ticket = ticket,
-                                    paso = "2",
-                                },
-                                ObtenerIPComercio(pago.intentos_zp.int_id_comercio.ToString())
-                            );
-                            // //Check ticket pago
-                            pago.ticket_cobol_ok = response_ticket?.STATUS == "00";
-                        }
-                        else
+                    var intento = await _context
+                        .INTENTOSZP.Where(i => i.str_id_pago.Equals(pago.intentos_zp.str_id_pago))
+                        .OrderByDescending(i => i.fecha_intento)
+                        .ThenByDescending(i => i.hora_intento)
+                        .FirstOrDefaultAsync();
+
+                    if (intento != null)
+                    {
+                        intento.estado_intento = estado_final;
+
+                        var response_estado = await ActualizarEstadoPowerICA(
+                            new RequestIYC007
+                            {
+                                sesion = "",
+                                usuario = pago.intentos_zp.str_usuario,
+                                llave_imp = intento.str_id_pago,
+                                estado = estado_final,
+                            },
+                            ObtenerIPComercio(pago.intentos_zp.int_id_comercio.ToString())
+                        );
+
+                        pago.estado_cobol_fin = response_estado.STATUS;
+                        pago.detalle_cobol_fin = response_estado.MENSAJE;
+
+                        if (estado_final == "A")
                         {
-                            //TODO: Preguntar rutas dlls de PREDIAL
-                            // await ContabilizarFacturaAprobadaPREDIAL(
-                            //     new
-                            //     {
-                            //         usuario = "",
-                            //         sesion = intento.str_usuario,
-                            //         nro_cat = intento.str_id_pago,
-                            //         ano_fin = DateTime.Now.Year.ToString(),
-                            //         vlr_fac = intento.flt_total_con_iva,
-                            //     },
-                            //     ObtenerIPComercio(pago.intentos_zp.int_id_comercio.ToString())
-                            // );
+                            if (pago.intentos_zp.str_opcional1 == "ICA")
+                            {
+                                var response_contab_ica = await ContabilizarFacturaAprobadaICA(
+                                    new RequestIYC006G
+                                    {
+                                        sesion = "",
+                                        usuario = pago.intentos_zp.str_usuario,
+                                        llave_imp = pago.intentos_zp.str_id_pago,
+                                        recibo = pago.intentos_zp.str_opcional2,
+                                    },
+                                    ObtenerIPComercio(pago.intentos_zp.int_id_comercio.ToString())
+                                );
+                                //Check contabilizacion
+                                pago.contabilizado_cobol_ok = response_contab_ica?.STATUS == "00";
+
+                                string ticket = pago.intentos_zp.numero_ticket_cobol.ToString().PadLeft(10, '0');
+                                var response_ticket = await CrearTicketPagoAprobadoICA(
+                                    new RequestIYC005
+                                    {
+                                        sesion = "",
+                                        usuario = pago.intentos_zp.str_usuario,
+                                        recibo = pago.intentos_zp.str_opcional2,
+                                        ticket = ticket,
+                                        paso = "2",
+                                    },
+                                    ObtenerIPComercio(pago.intentos_zp.int_id_comercio.ToString())
+                                );
+                                // //Check ticket pago
+                                pago.ticket_cobol_ok = response_ticket?.STATUS == "00";
+                            }
+                            else
+                            {
+                                //TODO: Preguntar rutas dlls de PREDIAL
+                                // await ContabilizarFacturaAprobadaPREDIAL(
+                                //     new
+                                //     {
+                                //         usuario = "",
+                                //         sesion = intento.str_usuario,
+                                //         nro_cat = intento.str_id_pago,
+                                //         ano_fin = DateTime.Now.Year.ToString(),
+                                //         vlr_fac = intento.flt_total_con_iva,
+                                //     },
+                                //     ObtenerIPComercio(pago.intentos_zp.int_id_comercio.ToString())
+                                // );
+                            }
                         }
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error al actualizar estado del pago {PagoId}: {Message} ❌", pago.intentos_zp?.str_id_pago ?? "SIN ID", ex.Message);    
+                throw;
             }
         }
 
@@ -296,7 +310,6 @@ namespace Common
             decimal total = subtotal + interes + int_ad;
             return total;
         }
-
 
         public string GenerarEstadoPago(string int_estado_pago)
         {
@@ -357,6 +370,5 @@ namespace Common
 
         [GeneratedRegex("\\s{2,}")]
         private static partial Regex MyRegex();
-
     }
 }
