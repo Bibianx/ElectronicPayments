@@ -37,7 +37,10 @@ namespace Aplication.Services.ZonaPagos
                 pago.InformacionSeguridad.int_modalidad = -1;
 
                 if (!ValidarDatos(pago))
+                {
+                    _logger.LogError("❌ Error de credenciales invalidas ❌");
                     return ErrorInicioPagoResponse(-1);
+                }
 
                 // Verificar si ya existe un intento pendiente o aprobado, si es así, no permitir nuevo intento con la misma factura
                 var existe_intento = await _context
@@ -62,7 +65,10 @@ namespace Aplication.Services.ZonaPagos
 
                 var httpResult = await client.PostAsJsonAsync("Apis_CicloPago/api/InicioPago", pago);
                 if (!httpResult.IsSuccessStatusCode)
+                {
+                    _logger.LogError("❌ Error al comunicarse con el servicio ZonaPagos: {ReasonPhrase} ❌", httpResult.Content.ReadAsStringAsync().Result);
                     return ErrorInicioPagoResponse(-1);
+                }
 
                 var data = await httpResult.Content.ReadFromJsonAsync<InicioPagoResponsePSEDto>();
                 if (data == null || data.int_codigo != 1)
@@ -99,10 +105,11 @@ namespace Aplication.Services.ZonaPagos
                 response.str_url = data?.str_url;
                 response.int_codigo = 1;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _logger.LogError(ex, "❌ Error excepcion detalle: {message} ❌", ex.Message);
                 await transaction.RollbackAsync();
-                response = ErrorInicioPagoResponse(-1);
+                return ErrorInicioPagoResponse(-1);
             }
             return response;
         }
@@ -188,8 +195,9 @@ namespace Aplication.Services.ZonaPagos
 
                 return data;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _logger.LogError(ex, "❌ Error excepcion detalle: {message} ❌", ex.Message);
                 return ErrorVerificarPagoResponse(-1);
             }
         }
@@ -306,11 +314,12 @@ namespace Aplication.Services.ZonaPagos
                 response.data = db_estados;
                 response.success = true;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 response.success = false;
                 response.message = "Ocurrió un error al consultar las facturas";
                 response.error = "Error en la consulta de facturas";
+                _logger.LogError("❌ Error al consultar las facturas: {Message} ❌", ex.Message);
             }
             return response;
         }
@@ -360,7 +369,7 @@ namespace Aplication.Services.ZonaPagos
             catch (Exception ex)
             {
                 await transaction.RollbackAsync();
-                _logger.LogError("Error al procesar la notificación de pago: {message}", ex.Message);
+                _logger.LogError("❌ Error al procesar la notificación de pago: {Message} ❌", ex.Message);
             }
         }
     }
