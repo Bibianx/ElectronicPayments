@@ -89,7 +89,22 @@ namespace Infraestructure.ExternalAPI.DTOs.Dominus
         public decimal? total { get; set; }
         public decimal? iva { get; set; }
         public decimal? impoconsumo { get; set; }
-        public string taxes { get; set; }
+        public List<Taxes> taxes { get; set; } = [];
+    }
+
+    public class Taxes
+    {
+        public int? id { get; set; }
+        public int? productref_id { get; set; }
+        public string code { get; set; }
+        public string name { get; set; }
+        public decimal? tax_value { get; set; }
+        public int? tax_id { get; set; }
+        public string label { get; set; }
+        public int? tax_type { get; set; }
+        public int? mode { get; set; }
+        public string integration_code { get; set; }
+        public decimal? value { get; set; }
     }
 
     public class PaymentMethod
