@@ -1,6 +1,7 @@
 using System.Net;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using Aplication.DTOs.Predial;
 using Domain.Entities.ZonaPagos;
 using Infraestructure.ExternalAPI.DTOs.ZonaPagos;
 using Infrastructure.ExternalAPI.Common.Response;
@@ -83,6 +84,15 @@ namespace Common
                 request
             );
         }
+        
+        public async Task<EstructuraResponseDLL> ContabilizarFacturaAprobadaPredial(CAT204GDto request, string ip_server_comercio)
+        {
+            return await EjecutarDllGenerica<CAT204GDto, EstructuraResponseDLL>(
+                ip_server_comercio,
+                @"PREDIAL/CAT204G.DLL",
+                request
+            );
+        }
 
         public async Task<EstructuraResponseDLL> CrearTicketPagoAprobadoICA(RequestIYC005 request, string ip_server_comercio)
         {
@@ -115,7 +125,6 @@ namespace Common
             {
                 var client = _httpClientFactory.CreateClient();
                 client.Timeout = TimeSpan.FromMinutes(10); //tiempo segun dlls, tardios en responder en algunos casos
-              
                 var data = datos_dll;
 
                 if (data != null)
@@ -268,17 +277,17 @@ namespace Common
                             else
                             {
                                 //TODO: Preguntar rutas dlls de PREDIAL
-                                // await ContabilizarFacturaAprobadaPREDIAL(
-                                //     new
-                                //     {
-                                //         usuario = "",
-                                //         sesion = intento.str_usuario,
-                                //         nro_cat = intento.str_id_pago,
-                                //         ano_fin = DateTime.Now.Year.ToString(),
-                                //         vlr_fac = intento.flt_total_con_iva,
-                                //     },
-                                //     ObtenerIPComercio(pago.intentos_zp.int_id_comercio.ToString())
-                                // );
+                                await ContabilizarFacturaAprobadaPredial(
+                                    new CAT204GDto
+                                    {   
+                                        usuario = "",
+                                        sesion = intento.str_usuario,
+                                        nro_cat = intento.str_id_pago,
+                                        ano_fin = DateTime.Now.Year.ToString(),
+                                        vlr_fac = intento.flt_total_con_iva,
+                                    },
+                                    ObtenerIPComercio(pago.intentos_zp.int_id_comercio.ToString())
+                                );
                             }
                         }
                     }
@@ -344,16 +353,6 @@ namespace Common
             else
                 return string.Empty;
         }
-
-        // public async Task ContabilizarFacturaAprobadaPREDIAL(object request, string ip_server_comercio) //TRequest Y TResponse predial
-        // {
-        //     return await EjecutarDllGenerica<RequestIYC005, EstructuraResponseDLL>(
-        //         ip_server_comercio,
-        //         @"INDUSTRIA_V2/v2/app/impuesto/IYC005.DLL",
-        //         request
-        //     );
-        // }
-
 
         private static string GetLocalIPAddress()
         {
