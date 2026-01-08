@@ -29,6 +29,7 @@ using Aplication.UseCases.Dominus;
 using Aplication.Interfaces;
 using Aplication.UseCases;
 using Api.Middlewares;
+using Aplication.Services.Predial;
 
 public class Startup(IConfiguration configuration)
 {
@@ -102,10 +103,10 @@ public class Startup(IConfiguration configuration)
     }
 
     private static void ConfigureGeneralesMapping(IServiceCollection services)
-        {
-            /* mapping */
-            services.AddAutoMapper(typeof(AutoMapperZonaPagos));
-        }
+    {
+        /* mapping */
+        services.AddAutoMapper(typeof(AutoMapperZonaPagos));
+    }
 
     private void ConfigureConnectionDB(IServiceCollection services)
     {
@@ -123,6 +124,7 @@ public class Startup(IConfiguration configuration)
         services.AddScoped<IZonaPagoPSE, ZonaPagoPSEServices>();
         services.AddScoped<ISONDAServices, SONDAServices>(); 
         services.AddScoped<IIndustria, IndustriaServices>();
+        services.AddScoped<IPredial, PredialServices>();
         services.AddScoped<IDominus, DominusServices>();
         services.AddScoped<IEpayco, EpaycoServices>();
         
