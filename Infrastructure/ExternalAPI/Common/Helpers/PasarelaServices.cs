@@ -16,6 +16,7 @@ namespace Common
         Task<TResponse> EjecutarDllGenerica<TRequest, TResponse>(string direccion_ip_comercio, string directorio_dll, TRequest request)
             where TResponse : new();
         Task<EstructuraResponseDLL> ContabilizarFacturaAprobadaICA(RequestIYC006G request, string ip_server_comercio);
+        Task<EstructuraResponseDLL> ContabilizarFacturaAprobadaPredial(CAT204GDto request, string ip_server_comercio);
         Task<EstructuraResponseDLL> CrearTicketPagoAprobadoICA(RequestIYC005 request, string ip_server_comercio);
         Task<EstructuraResponseDLL> ActualizarEstadoPowerICA(RequestIYC007 request, string ip_server_comercio);
         (string int_pago_terminado, string int_estado_pago) ObtenerPropiedadesPipeline(string response);
@@ -155,7 +156,7 @@ namespace Common
 
                         string resultado = regex.Replace(response_content, "");
                         string resultado_limpio = resultado.Replace("\n", "\\n");
-                        System.Console.WriteLine($"conteido a parsear: {resultado}");
+                        System.Console.WriteLine($"conteido a parsear ❤️❤️❤️❤️❤️: {resultado}");
                         try
                         {
                             dynamic json_response = JsonDocument.Parse(resultado_limpio);
@@ -280,8 +281,8 @@ namespace Common
                                 await ContabilizarFacturaAprobadaPredial(
                                     new CAT204GDto
                                     {   
-                                        usuario = "",
-                                        sesion = intento.str_usuario,
+                                        sesion = "",
+                                        usuario = intento.str_usuario,
                                         nro_cat = intento.str_id_pago,
                                         ano_fin = DateTime.Now.Year.ToString(),
                                         vlr_fac = intento.flt_total_con_iva,
